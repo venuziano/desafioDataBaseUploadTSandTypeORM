@@ -1,22 +1,48 @@
 import { Router } from 'express';
+import { getCustomRepository } from 'typeorm';
 
-// import TransactionsRepository from '../repositories/TransactionsRepository';
-// import CreateTransactionService from '../services/CreateTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
+import TransactionsRepository from '../repositories/TransactionsRepository';
+import CreateTransactionService from '../services/CreateTransactionService';
+import DeleteTransactionService from '../services/DeleteTransactionService';
 // import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
 
+const createTransaction = new CreateTransactionService();
+const deleteTransaction = new DeleteTransactionService();
+
 transactionsRouter.get('/', async (request, response) => {
-  // TODO
+  const transactionsRepository = getCustomRepository(TransactionsRepository);
+  const transactions = await transactionsRepository.find();
+  const balance = await transactionsRepository.getBalance();
+
+  const transactionWithBalance = {
+    transactions,
+    balance,
+  };
+
+  return response.json(transactionWithBalance);
 });
 
 transactionsRouter.post('/', async (request, response) => {
-  // TODO
+  const { title, type, value, category } = request.body;
+
+  const transaction = await createTransaction.execute({
+    title,
+    type,
+    value,
+    category,
+  });
+
+  return response.json(transaction);
 });
 
 transactionsRouter.delete('/:id', async (request, response) => {
-  // TODO
+  const { id } = request.params;
+
+  const deletedTransaction = await deleteTransaction.execute(id);
+
+  return response.json({ message: 'Transaction deleted.' });
 });
 
 transactionsRouter.post('/import', async (request, response) => {
